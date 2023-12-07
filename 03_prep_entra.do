@@ -28,16 +28,34 @@ lab val group group
 tab group
 
 
-global varlist2 "data lfid wave sex age sit group datetime_int edumaxtr_ISCED edumaxpl_ISCED polintrco polintrger fmsit lgerud lgerspk lgerrd lgerwr ppco ppger actco actellse hospger wkhardger treatmnt imdatearrm imdatearry imdatearrd imdatearr imgerm imgery imgerd satis whyim1 whyim2 whyim3 whyim4 whyim5 whyim6 whyim7 reldgr treatmntself wk actellse frnco frn1fam frn2fam frn3fam frn1cb frn2cb frn3cb frn wkh wkhw2 wk_ISEI durstay"
+global varlist2 "data lfid wave sex age sit group datetime_int edumaxtr_ISCED edumaxpl_ISCED polintrco polintrger fmsit lgerud lgerspk lgerrd lgerwr ppco ppger actco actellse hospger wkhardger treatmnt imdatearrm imdatearry imdatearrd imdatearr imgerm imgery imgerd satis whyim1 whyim2 whyim3 whyim4 whyim5 whyim6 whyim7 reldgr treatmntself wk actellse frnco frn1fam frn2fam frn3fam frn1cb frn2cb frn3cb frn wkh wkhw2 wk_ISEI durstay lgerimprhow1 lgerimprhow2 lgerimprc lgerimpr"
 keep ${varlist2}
 
+recode lgerimprhow1 .f=0
+recode lgerimprhow1 ./.x=.
+recode lgerimprhow2 .f=0
+recode lgerimprhow2 ./.x=.
+recode lgerimprc .f=0
+recode lgerimprc ./.x=.
 
+rename lgerimprhow1 integr_course
 
+gen language_course=0 if lgerimprhow2==0 | lgerimprc==0
+replace language_course = 1 if lgerimprhow2==1 | lgerimprc==1
+
+foreach x in whyim1 whyim2 whyim3 whyim4 whyim5 whyim7{
+recode `x' ./.x=.
+}
 
 gen reas_economic = whyim1==1
 gen reas_education = whyim2==1 
 gen reas_family = whyim3==1 | whyim4==1 | whyim5==1
 gen reas_political =whyim7==1
+replace reas_economic=. if whyim1==.
+replace reas_education = . if whyim2==.
+replace reas_family =. if  whyim3==. & whyim4==. & whyim5==.
+replace reas_political =. if whyim7==.
+
 
 duplicates tag lfid, gen(panel)
 drop if panel==0
@@ -152,7 +170,7 @@ drop lfid
 sort id2 wave
 
 
-keep data id datetime age sex group isced_co_entra lang_understand lang_speak lang_read lang_write main_activity pol_co pol_rc satisfaction get_ahead hospitable spendtime_co spendtime_rc datetime_year datetime_month arrival_date_month_entra arrival_date_year_entra wave expectation_entra reas_economic working reas_education reas_family reas_political religiosity discrimination unemployed workinghours durstay //isei
+keep data id datetime age sex group isced_co_entra lang_understand lang_speak lang_read lang_write main_activity pol_co pol_rc satisfaction get_ahead hospitable spendtime_co spendtime_rc datetime_year datetime_month arrival_date_month_entra arrival_date_year_entra wave expectation_entra reas_economic working reas_education reas_family reas_political religiosity discrimination unemployed workinghours durstay integr_course language_course //isei
 
 
 *Harmonisieren Ankunftsdatum
