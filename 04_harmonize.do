@@ -4,7 +4,7 @@ drop id2
 gen covid = data==1
 
 
-reshape wide age main_activity datetime_year datetime_month lang_understand lang_speak lang_read lang_write pol_co pol_rc satisfaction get_ahead hospitable spendtime_co spendtime_rc isced_co_entra migr_year migr_month int_year int_month time_in_germany religiosity discrimination unemployed  workinghours expectation working durstay , i(id) j(wave)
+reshape wide age main_activity datetime_year datetime_month lang_understand lang_speak lang_read lang_write pol_co pol_rc satisfaction get_ahead hospitable spendtime_co spendtime_rc isced_co_entra migr_year migr_month int_year int_month time_in_germany religiosity discrimination unemployed  workinghours expectation working durstay integr_course language_course , i(id) j(wave)
 gen time_between = int_month1 - int_month0 + 1 if int_year1== int_year0
 replace time_between = (12-int_month0+1) + (int_year1 - int_year0 - 1)*12 + int_month1 if int_year1!= int_year0
 
@@ -71,7 +71,7 @@ drop rec1* rec2* rec3*
 rename language_skill_v1_0 language0
 rename language_skill_v1_1 language1
 
-reshape long language age main_activity datetime_year datetime_month lang_understand lang_speak lang_read lang_write pol_co pol_rc satisfaction get_ahead hospitable spendtime_co spendtime_rc isced_co_entra migr_year migr_month int_year int_month time_in_germany n_co_friends workinghours expectation unemployed, i(id) j(wave)
+reshape long language age main_activity datetime_year datetime_month lang_understand lang_speak lang_read lang_write pol_co pol_rc satisfaction get_ahead hospitable spendtime_co spendtime_rc isced_co_entra migr_year migr_month int_year int_month time_in_germany n_co_friends workinghours expectation unemployed integr_course language_course, i(id) j(wave)
 
 *Rescale
 replace spendtime_rc = (spendtime_rc-1)/5
@@ -89,10 +89,10 @@ recode isced 0/2=0 3/6=1 7/10=2
 gen stay = expectation==1
 replace stay = . if expectation==.
 
-keep 	id wave data ///
+keep 	id wave data panel ///
 	group language pol_rc unemployed spendtime_rc ///
 	int_year int_month migr_year migr_month ///
-	age sex isced time_in_germany time_between reas_economic reas_education reas_family reas_political stay
+	age sex isced time_in_germany time_between reas_economic reas_education reas_family reas_political stay integr_course language_course
 
 lab var stay "Expect to stay"
 lab var id "Identifier"	
@@ -115,6 +115,16 @@ lab var unemployed "Unemployment"
 lab def isced 1 "Educ: Medium (Ref: Low)" 2 "Educ: High (Ref: Low)", replace
 lab val isced isced
 lab var stay "Exp. to stay in Ger."
+lab var integr_course "Integration Course"
+lab var language_course "Language Course"
+lab var reas_economic "Migr. Motive: Economic"
+lab var reas_education "Migr. Motive: Education" 
+lab var reas_family "Migr. Motive: Family"
+lab var reas_political "Migr. Motive: Political"
 
+lab def yesno 0 "No" 1 "Yes"
+foreach x in integr_course language_course reas_economic reas_education reas_family reas_political{
+  lab val `x' yesno
+}
 
 compress
