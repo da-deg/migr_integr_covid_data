@@ -115,13 +115,5 @@ use `04_entra_scip_harmonized'							// load the raw (unharmonized SCIP and ENTR
 do "${WD}/05_finalize.do"							// harmonize the data
 save "${OUTPUT}/entra-scip-final_sample.dta", replace				// save the harmonized (final dataset)
 
-
-* key variables:
-* language skills
-* social contacts
-* labor market
-* political interest
-* education, age, sex, origin, time in germany, time between panel waves, expectation to stay in germany, reason to migrate
-
 capture log close
 
