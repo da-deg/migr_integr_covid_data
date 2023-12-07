@@ -1,4 +1,5 @@
 /*
+
 Preparing SCIP dataset
 */
 
@@ -14,8 +15,7 @@ drop if CTZSHIP_RC != 0 & CTZSHIP_RC != .					// drop if they hold the German ci
 
 
 duplicates tag ID, gen(panel)							// gen variable "panel": 1 = two observations per ID, 0 = one observation per ID
-drop if panel==0 								// drop observations that did not pariticipate in the second panel wave
-drop panel									// drop the variable panel
+drop if wave==2 & panel==0
 
 sort ID wave
 by ID: gen id = 1 if _n==1							// generate variable id which is 1 to n for observations in wave 1
@@ -23,7 +23,7 @@ replace id = sum(id)								// replace variable id as the sum of previous values
 drop ID										// drop old identifier
 
 
-global varlist "id wave city EG YB_op SEX IMDATE_op  datetime EDUMAX_CO_TR_ISCED EDUMAX_CO_PL_ISCED  SIT HHSZ FMSIT POL_RC POL_CO LRCSPK LRCWR LRCRD LRCUD PPRC PPCO ACT ACT HOSP_RC WKHARD_RC DSCRFREQ MYLEAVE_RC_op SATIS_RC HM_RC WKHARD_RC HOSP_RC PPCO PPRC WHYECO WHYEDU WHYFFM WHYJFM WHYMAR WHYPOL RELDGR DSCRFREQ ACT EDUFTPT FRCO_RC_op FR1CB FR2CB FR3CB FR1BACK FR2BACK FR3BACK FRN_RC WKH_op JB_RC_op_ISEI CURRJB_RC_op_ISEI" 
+global varlist "id wave city EG YB_op SEX IMDATE_op  datetime EDUMAX_CO_TR_ISCED EDUMAX_CO_PL_ISCED  SIT HHSZ FMSIT POL_RC POL_CO LRCSPK LRCWR LRCRD LRCUD PPRC PPCO ACT ACT HOSP_RC WKHARD_RC DSCRFREQ MYLEAVE_RC_op SATIS_RC HM_RC WKHARD_RC HOSP_RC PPCO PPRC WHYECO WHYEDU WHYFFM WHYJFM WHYMAR WHYPOL RELDGR DSCRFREQ ACT EDUFTPT FRCO_RC_op FR1CB FR2CB FR3CB FR1BACK FR2BACK FR3BACK FRN_RC WKH_op JB_RC_op_ISEI CURRJB_RC_op_ISEI panel IGRCRSE_GER WHY_dk WHY_rf LLCL_RC" 
 keep $varlist
 gen data=0
 
@@ -31,11 +31,28 @@ gen data=0
 *Step 2: prepare the data for harmonization
 
 *Reason to migrate	
+foreach x in WHYEDU WHYECO WHYFFM WHYJFM WHYMAR WHYPOL{
+recode `x' -52=.
+}
+
+
+
 gen reas_economic = WHYECO==1
 gen reas_education = WHYEDU==1 
 gen reas_family = WHYFFM==1 | WHYJFM==1 | WHYMAR==1
 gen reas_political =WHYPOL==1
+replace reas_economic = . if WHYECO==. | WHY_dk ==1 | WHY_rf==1
+replace reas_education = . if WHYEDU==.| WHY_dk ==1 | WHY_rf==1
+replace reas_family = . if (WHYFFM==. & WHYJFM==. & WHYMAR ==.) | WHY_dk ==1 | WHY_rf==1
+replace reas_political =. if WHYPOL==. | WHY_dk ==1 | WHY_rf==1
 
+
+*Language/integration course
+recode IGRCRSE_GER -99=0 -98/-97=. 3=0 2=1
+rename IGRCRSE_GER integr_course
+recode LLCL_RC -54=. -99=0
+rename LLCL_RC language_course 
+	
 
 rename SIT expectation_scip
 sort id wave
@@ -197,7 +214,7 @@ order 	id data wave group sex age time_in_germany isced_co 			/// fundamental va
 	reas_economic reas_education reas_family reas_political 		/// controls: reason to migrate
 	religiosity discrimination						/// optional outcomes 1/2
 	satisfaction get_ahead hospitable 					/// optional outcomes 2/2
-	datetime_year datetime_month int_year int_month expectation				//  background variables
+	datetime_year datetime_month int_year int_month expectation integr_course language_course				//  background variables
 
 keep 	id data wave group sex age time_in_germany isced_co 			/// fundamental variables
 	int_year int_month migr_year migr_month						/// dates
@@ -208,7 +225,8 @@ keep 	id data wave group sex age time_in_germany isced_co 			/// fundamental var
 	reas_economic reas_education reas_family reas_political 		/// controls: reason to migrate
 	religiosity discrimination						/// optional outcomes 1/2
 	satisfaction get_ahead hospitable 					/// optional outcomes 2/2
-	datetime_year datetime_month  int_year int_month expectation			//  background variables
+	datetime_year datetime_month  int_year int_month expectation integr_course language_course			///  background variables
+	panel
 
 
 *reshape wide data group sex age time_in_germany isced_co lang_understand lang_speak lang_read lang_write spendtime_co spendtime_rc main_activity working unemployed pol_co pol_rc reas_economic reas_education reas_family reas_political religiosity discrimination satisfaction get_ahead hospitable datetime_year datetime_month, i(id) j(wave)
